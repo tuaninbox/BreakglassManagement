@@ -9,6 +9,9 @@ from models.user import User
 from api import auth, devices, accounts, requests, approvals, admin
 from ui import routes as ui_routes
 
+from core.config_loader import load_config
+from core.device_loader import load_devices
+
 app = FastAPI(title="Breakglass")
 
 
@@ -40,6 +43,16 @@ async def seed_admin_user():
 
 @app.on_event("startup")
 async def startup():
+    # Load configuration
+    app.state.config = load_config()
+    print("✔ Loaded configuration:", app.state.config)
+
+    # Optional: preload devices at startup
+    try:
+        app.state.devices = await load_devices(app.state.config)
+        print(f"✔ Loaded {len(app.state.devices)} devices")
+    except Exception as e:
+        print("⚠ Device load failed:", e)
     # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

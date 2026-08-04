@@ -78,3 +78,6 @@ idea/
 vscode/
 # macOS specific files:
 DS_Store
+
+# User files
+*.db

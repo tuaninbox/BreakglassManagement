@@ -1,0 +1,5 @@
+Host,IP,Port,Location,Group,OS
+router-core-01,10.1.0.1,22,DC1,ConfigBackup_ios,IOS
+router-core-02,10.1.0.2,22,DC1,ConfigBackup_ios,IOS
+switch-dist-01,10.2.1.10,22,DC2,ConfigBackup_nxos,NXOS
+switch-dist-02,10.2.1.11,22,DC2,ConfigBackup_nxos,NXOS

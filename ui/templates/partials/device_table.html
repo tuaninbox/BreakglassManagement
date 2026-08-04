@@ -1,0 +1,32 @@
+<table class="min-w-full bg-white border border-gray-300 rounded">
+  <thead class="bg-gray-100 border-b">
+    <tr>
+      <th class="px-4 py-2 text-left cursor-pointer" hx-get="/ui/devices?sort=name" hx-target="#device-table">Name</th>
+      <th class="px-4 py-2 text-left cursor-pointer" hx-get="/ui/devices?sort=ip" hx-target="#device-table">IP</th>
+      <th class="px-4 py-2 text-left">Port</th>
+      <th class="px-4 py-2 text-left cursor-pointer" hx-get="/ui/devices?sort=location" hx-target="#device-table">Location</th>
+      <th class="px-4 py-2 text-left">Group</th>
+      <th class="px-4 py-2 text-left cursor-pointer" hx-get="/ui/devices?sort=os" hx-target="#device-table">OS</th>
+      <th class="px-4 py-2 text-left">Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for d in devices %}
+    <tr class="border-b hover:bg-gray-50">
+      <td class="px-4 py-2">{{ d.name }}</td>
+      <td class="px-4 py-2">{{ d.ip }}</td>
+      <td class="px-4 py-2">{{ d.port }}</td>
+      <td class="px-4 py-2">{{ d.location }}</td>
+      <td class="px-4 py-2">{{ d.group }}</td>
+      <td class="px-4 py-2">{{ d.os }}</td>
+      <td class="px-4 py-2">
+        <a href="/ui/requests/new?device={{ d.name }}"
+           class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+          Request Account
+        </a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

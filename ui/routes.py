@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, Form
+from fastapi import APIRouter, Request, Depends, Form, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,8 +7,8 @@ from sqlalchemy import select
 from core.db import get_db
 from deps.auth import get_current_user
 from core.security import verify_password, create_access_token
-from models.device import Device
 from models.user import User
+from core.device_loader import load_devices
 
 router = APIRouter(prefix="/ui", tags=["ui"])
 templates = Jinja2Templates(directory="ui/templates")
@@ -17,16 +17,45 @@ templates.env.cache.clear()
 @router.get("/devices", response_class=HTMLResponse)
 async def devices_page(
     request: Request,
-    db: AsyncSession = Depends(get_db),
+    search: str = "",
+    filter_os: str = "",
+    sort: str = "",
     current_user: User = Depends(get_current_user),
 ):
-    stmt = select(Device)
-    result = await db.execute(stmt)
-    devices = result.scalars().all()
+    cfg = request.app.state.config
+    devices = await load_devices(cfg)
+
+    # Filtering
+    if search:
+        s = search.lower()
+        devices = [
+            d for d in devices
+            if s in d["name"].lower()
+            or s in d["ip"].lower()
+            or s in d["os"].lower()
+        ]
+
+    if filter_os:
+        devices = [d for d in devices if d["os"] == filter_os]
+
+    # Sorting
+    if sort in ("name", "ip", "location", "os"):
+        devices = sorted(devices, key=lambda x: x[sort])
+
+    # HTMX request → return only table fragment
+    if request.headers.get("HX-Request") == "true":
+        return templates.TemplateResponse(
+            "partials/device_table.html",
+            {"request": request, "devices": devices},
+        )
+
+    # Normal full-page load
     return templates.TemplateResponse(
         "devices.html",
         {"request": request, "user": current_user, "devices": devices},
     )
+
+
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -61,3 +90,20 @@ async def login_submit(
         samesite="lax",
     )
     return response
+
+@router.get("/logout")
+async def logout(response: RedirectResponse):
+    response = RedirectResponse(url="/ui/login")
+    response.delete_cookie("session")
+    return response
+
+@router.get("/requests/new", response_class=HTMLResponse)
+async def new_request_page(request: Request, device: str, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse(
+        "new_request.html",
+        {
+            "request": request,
+            "user": current_user,
+            "device": device,
+        },
+    )

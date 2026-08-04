@@ -1,15 +1,35 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Breakglass</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-  <nav class="bg-blue-600 text-white p-4">
-    <span class="font-bold">Breakglass</span>
-  </nav>
-  <main class="p-4">
+
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Responsive Top Bar -->
+  <header class="w-full bg-white shadow-sm px-4 py-3 flex justify-between items-center">
+    <div class="text-lg font-semibold">Breakglass</div>
+
+    {% if user and user.username %}
+    <div class="flex items-center space-x-4">
+      <span class="text-sm text-gray-700">
+        Logged in as <strong>{{ user.username }}</strong>
+      </span>
+      <a href="/ui/logout"
+         class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+        Logout
+      </a>
+    </div>
+    {% endif %}
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-6xl mx-auto px-4 py-6">
     {% block content %}{% endblock %}
   </main>
+
 </body>
 </html>

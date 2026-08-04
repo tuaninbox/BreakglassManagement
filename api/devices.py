@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from core.db import get_db
 from deps.auth import get_current_user
 from core.logging import log_event
-from core.nagios import get_hostgroups, get_devices_from_hostgroup
+from core.nagios import get_hosts_from_hostgroup
+from core.device_loader import load_devices
 from models.user import User
 from models.device import Device
 from schemas.device import DeviceRead, DeviceCreate, DeviceImportItem
@@ -14,13 +15,17 @@ router = APIRouter(prefix="/api/devices", tags=["devices"])
 
 @router.get("/", response_model=list[DeviceRead])
 async def list_devices(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    stmt = select(Device)
-    result = await db.execute(stmt)
-    devices = result.scalars().all()
-    return devices
+    cfg = request.app.state.config
+    source = cfg["devices"]["source"]
+
+    # Option A — load from CSV or Nagios
+    if source in ("file", "nagios"):
+        devices = await load_devices(cfg)
+        return devices
 
 @router.post("/", response_model=DeviceRead, status_code=201)
 async def create_device(
@@ -38,15 +43,6 @@ async def create_device(
     log_event("DEVICE_CREATED", device_id=device.id, name=device.name)
     return device
 
-@router.get("/nagios/hostgroups")
-async def list_nagios_hostgroups(
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admin can query Nagios")
-    hostgroups = await get_hostgroups()
-    return hostgroups
-
 @router.post("/nagios/sync", response_model=list[DeviceRead])
 async def sync_devices_from_nagios(
     hostgroup_name: str,
@@ -56,7 +52,7 @@ async def sync_devices_from_nagios(
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admin can sync devices")
 
-    devices_data = await get_devices_from_hostgroup(hostgroup_name)
+    devices_data = await get_hosts_from_hostgroup(hostgroup_name)
     created_devices = []
 
     for d in devices_data:

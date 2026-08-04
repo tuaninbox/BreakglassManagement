@@ -1,51 +1,82 @@
 import httpx
-from typing import List, Dict
-from core.config import settings
+from typing import List, Dict, Any
 
-# These endpoints are examples; adjust to your Nagios XI/Core API.
-# Idea: get hostgroups, then hosts in a hostgroup.
 
-async def get_hostgroups() -> List[Dict]:
-    """
-    Return list of hostgroups from Nagios.
-    """
-    if not settings.nagios_api_token:
-        return []
 
-    url = f"{settings.nagios_url}/nagiosxi/api/v1/config/hostgroup"
-    params = {"apikey": settings.nagios_api_token}
-    async with httpx.AsyncClient(verify=settings.nagios_verify_ssl) as client:
+def derive_os_from_group(group: str) -> str:
+    group = group.lower()
+    if "ios" in group:
+        return "IOS"
+    if "nxos" in group:
+        return "NXOS"
+    return "Unknown"
+
+
+async def get_hosts_from_hostgroup(
+    nagios_host: str,
+    nagios_api: str,
+    hostgroup: str,
+    verify_ssl: bool = False,
+) -> List[Dict]:
+    url = f"{nagios_host}/nagiosxi/api/v1/objects/host"
+    params = {"apikey": nagios_api, "hostgroup_name": hostgroup}
+
+    async with httpx.AsyncClient(verify=verify_ssl) as client:
         resp = await client.get(url, params=params)
         resp.raise_for_status()
         data = resp.json()
-        # Normalize to [{'name': ..., 'alias': ...}, ...]
-        return [
-            {"name": hg.get("hostgroup_name"), "alias": hg.get("alias")}
-            for hg in data.get("hostgroups", [])
-        ]
 
-async def get_devices_from_hostgroup(hostgroup_name: str) -> List[Dict]:
-    """
-    Return list of devices (hosts) in a given hostgroup.
-    """
-    if not settings.nagios_api_token:
-        return []
+    hosts = []
+    for host in data.get("host", []):
+        hosts.append(
+            {
+                "name": host.get("host_name"),
+                "ip": host.get("address"),
+                "port": host.get("port") or "",
+                "location": host.get("notes") or "",
+                "group": hostgroup,
+                "os": derive_os_from_group(hostgroup),
+            }
+        )
+    return hosts
 
-    url = f"{settings.nagios_url}/nagiosxi/api/v1/objects/host"
-    params = {
-        "apikey": settings.nagios_api_token,
-        "hostgroup_name": hostgroup_name,
-    }
-    async with httpx.AsyncClient(verify=settings.nagios_verify_ssl) as client:
-        resp = await client.get(url, params=params)
-        resp.raise_for_status()
-        data = resp.json()
-        devices = []
-        for host in data.get("host", []):
-            devices.append(
-                {
-                    "name": host.get("host_name"),
-                    "description": host.get("display_name") or host.get("host_name"),
-                }
-            )
-        return devices
+
+async def get_hosts_for_hostgroups(config: Dict[str, Any]) -> List[Dict]:
+    nagios_cfg = config["nagios"]
+    nagios_host = nagios_cfg["host"]
+    nagios_api = nagios_cfg["api"]
+    hostgroups = nagios_cfg["hostgroups"]
+
+    all_hosts = []
+    for hg in hostgroups:
+        hosts = await get_hosts_from_hostgroup(
+            nagios_host=nagios_host,
+            nagios_api=nagios_api,
+            hostgroup=hg,
+            verify_ssl=False,
+        )
+        all_hosts.extend(hosts)
+
+    return all_hosts
+
+
+def export_hosts_to_csv(hosts: List[Dict], output_file: str = "nagios_hosts.csv"):
+    import csv
+
+    fields = ["Host", "IP", "Port", "Location", "Group", "OS"]
+
+    with open(output_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(fields)
+
+        for h in hosts:
+            writer.writerow([
+                h.get("name", ""),
+                h.get("ip", ""),
+                h.get("port", ""),
+                h.get("location", ""),
+                h.get("group", ""),
+                h.get("os", ""),
+            ])
+
+    return output_file
