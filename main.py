@@ -1,0 +1,66 @@
+from fastapi import FastAPI
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.db import Base, engine, AsyncSessionLocal
+from core.security import hash_password
+from models.user import User
+
+from api import auth, devices, accounts, requests, approvals, admin
+from ui import routes as ui_routes
+
+app = FastAPI(title="Breakglass")
+
+
+async def seed_admin_user():
+    """
+    Create an admin user on first startup if none exists.
+    This runs automatically and is idempotent.
+    """
+    async with AsyncSessionLocal() as db:
+        stmt = select(User).where(User.username == "admin")
+        result = await db.execute(stmt)
+        existing = result.scalar_one_or_none()
+
+        if existing:
+            return  # Admin already exists
+
+        admin_user = User(
+            username="admin",
+            email="admin@example.com",
+            role="admin",
+            password_hash=hash_password("admin123"),
+            is_active=True,
+        )
+
+        db.add(admin_user)
+        await db.commit()
+        print("✔ Admin user created: username=admin password=admin123")
+
+
+@app.on_event("startup")
+async def startup():
+    # Create tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Seed admin user
+    await seed_admin_user()
+
+
+# Routers
+app.include_router(auth.router)
+app.include_router(devices.router)
+app.include_router(accounts.router)
+app.include_router(requests.router)
+app.include_router(approvals.router)
+app.include_router(admin.router)
+app.include_router(ui_routes.router)
+
+
+# Optional: redirect "/" → "/ui/login"
+from fastapi.responses import RedirectResponse
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="http://localhost:8000/ui/login")
