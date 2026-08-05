@@ -53,3 +53,12 @@ async def get_current_user(
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     raise HTTPException(status_code=401, detail="Unauthorized")
+
+async def get_current_user_optional(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    try:
+        return await get_current_user(request, db)
+    except HTTPException:
+        return None

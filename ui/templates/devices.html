@@ -8,14 +8,29 @@
   <input
     id="search"
     name="search"
-    placeholder="Search name, IP, OS..."
+    placeholder="Search name, IP, OS, Location..."
     class="border px-3 py-2 rounded w-full md:w-64"
     hx-get="/ui/devices"
     hx-trigger="keyup changed delay:300ms"
     hx-target="#device-table"
-    hx-include="#search,#filter-os"
+    hx-include="#search,#filter-location,#filter-os"
   />
 
+  <select
+    id="filter-location"
+    name="filter_location"
+    class="border px-3 py-2 rounded w-full md:w-40"
+    hx-get="/ui/devices"
+    hx-trigger="change"
+    hx-target="#device-table"
+    hx-include="#search,#filter-location,#filter-os"
+  >
+    <option value="">All Locations</option>
+    <option value="DC1">Shenton Park</option>
+    <option value="DC2">Malaga</option>
+  </select>
+  
+ 
   <select
     id="filter-os"
     name="filter_os"
@@ -23,12 +38,14 @@
     hx-get="/ui/devices"
     hx-trigger="change"
     hx-target="#device-table"
-    hx-include="#search,#filter-os"
+    hx-include="#search,#filter-location,#filter-os"
   >
     <option value="">All OS</option>
     <option value="IOS">IOS</option>
     <option value="NXOS">NXOS</option>
   </select>
+
+
 </div>
 
 <div id="device-table" class="overflow-x-auto">

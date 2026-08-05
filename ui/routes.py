@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from core.db import get_db
-from deps.auth import get_current_user
+from deps.auth import get_current_user_optional
 from core.security import verify_password, create_access_token
 from models.user import User
 from core.device_loader import load_devices
@@ -19,9 +19,14 @@ async def devices_page(
     request: Request,
     search: str = "",
     filter_os: str = "",
+    filter_location: str = "",
     sort: str = "",
-    current_user: User = Depends(get_current_user),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
+    # If user is not logged in → redirect to login
+    if current_user is None:
+        return RedirectResponse("/ui/login")
+    
     cfg = request.app.state.config
     devices = await load_devices(cfg)
 
@@ -33,10 +38,14 @@ async def devices_page(
             if s in d["name"].lower()
             or s in d["ip"].lower()
             or s in d["os"].lower()
+            or s in d["location"].lower()
         ]
 
     if filter_os:
         devices = [d for d in devices if d["os"] == filter_os]
+
+    if filter_location:
+        devices = [d for d in devices if d["location"] == filter_location]
 
     # Sorting
     if sort in ("name", "ip", "location", "os"):
@@ -98,7 +107,7 @@ async def logout(response: RedirectResponse):
     return response
 
 @router.get("/requests/new", response_class=HTMLResponse)
-async def new_request_page(request: Request, device: str, current_user: User = Depends(get_current_user)):
+async def new_request_page(request: Request, device: str, current_user: User = Depends(get_current_user_optional)):
     return templates.TemplateResponse(
         "new_request.html",
         {
