@@ -19,6 +19,13 @@ async def approve_requests_page(
     db: AsyncSession = Depends(get_db),
 ):
     if current_user is None:
+        log_action(
+            current_user,
+            "approval_view",
+            f"Unauthenticated user attempted to view pending requests",
+            request,
+            category="approval",
+        )
         return RedirectResponse("/ui/login")
 
     if current_user.role not in ["approver", "requester_approver", "admin"]:
@@ -29,10 +36,10 @@ async def approve_requests_page(
 
     log_action(
         current_user,
-        "approver_view_pending",
+        "approval_view",
         f"Viewed {len(pending)} pending requests",
         request,
-        category="breakglass",
+        category="approval",
     )
 
     return templates.TemplateResponse(
@@ -70,10 +77,10 @@ async def approve_request(
 
     log_action(
         current_user,
-        "breakglass_request_approved",
-        f"Approved request {req_id}",
+        "approval_view",
+        f"Viewed {len(pending)} pending requests",
         request,
-        category="breakglass",
+        category="approval",
     )
 
     return RedirectResponse("/ui/approve/requests?success=approved")

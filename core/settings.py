@@ -29,7 +29,8 @@ class Settings(BaseSettings):
     # Audit Logging Configuration
     log_folder: str = "logs"
     log_file: str = "audit.log"
-    log_rotation: str = "10 MB"       # rotate when file reaches 10MB
+    log_rotation: str = "10 MB"       # 10 MB - rotate when file reaches 10MB
+    #log_rotation: str = "1 minute"       # 1 minute - rotate when file reaches 1 min
     log_retention: str = "14 days"    # keep logs for 14 days
     log_compression: str = "zip"      # compress rotated logs
 

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import Base, engine, AsyncSessionLocal
 from core.security import hash_password
-from core.middleware import AuditMiddleware
+#from core.middleware import AuditMiddleware
 from models.user import User
 
 from api import auth, devices, accounts, requests, approvals, admin
@@ -14,7 +14,7 @@ from core.device_config import load_config
 from core.device_loader import load_devices
 
 app = FastAPI(title="Breakglass")
-app.add_middleware(AuditMiddleware)
+#app.add_middleware(AuditMiddleware)
 
 async def seed_admin_user():
     """
