@@ -4,8 +4,6 @@ devices:
   file_path: "devices.csv"
 
   nagios:
-    host: "https://nagios.example.com"
-    api: "YOUR_API_KEY"
     hostgroups:
       - ConfigBackup_ios
       - ConfigBackup_nxos

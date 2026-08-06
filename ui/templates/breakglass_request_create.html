@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-xl font-bold mb-4">Breakglass Request</h2>
+
+<form method="post" class="space-y-4">
+
+  <div>
+    <label class="block font-semibold">Device</label>
+    <select name="device_id" class="border p-2 rounded w-full">
+      {% for d in request.app.state.devices %}
+        <option value="{{ d.id }}">{{ d.name }} ({{ d.ip }})</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label class="block font-semibold">Reason</label>
+    <textarea name="reason" class="border p-2 rounded w-full"></textarea>
+  </div>
+
+  <button class="bg-blue-600 text-white px-4 py-2 rounded">
+    Submit Request
+  </button>
+
+</form>
+
+{% endblock %}

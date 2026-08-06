@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-4">Create Account</h1>
+
+<div class="bg-white p-6 rounded shadow-md max-w-xl">
+
+  <form method="post" action="/ui/accounts/create" onsubmit="return validatePasswords()">
+
+    <label class="block mb-2 font-medium">Username</label>
+    <input type="text" name="username" class="border rounded px-3 py-2 w-full mb-4" required>
+
+    <label class="block mb-2 font-medium">Email</label>
+    <input type="email" name="email" class="border rounded px-3 py-2 w-full mb-4" required>
+
+    <label class="block mb-2 font-medium">Password</label>
+    <input type="password" id="password" name="password"
+           class="border rounded px-3 py-2 w-full mb-4" required>
+
+    <label class="block mb-2 font-medium">Confirm Password</label>
+    <input type="password" id="confirm_password" name="confirm_password"
+           class="border rounded px-3 py-2 w-full mb-4" required>
+
+    <p id="password_error" class="text-red-600 mb-4 hidden">
+      Passwords do not match.
+    </p>
+
+    <label class="block mb-2 font-medium">Role</label>
+    <select name="role" class="border rounded px-3 py-2 w-full mb-4" required>
+      <option value="requester">Requester</option>
+      <option value="approver">Approver</option>
+      <option value="requester_approver">Requester + Approver</option>
+      <option value="admin">Admin</option>
+    </select>
+
+    <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      Create Account
+    </button>
+
+  </form>
+</div>
+
+<script>
+function validatePasswords() {
+  const pw = document.getElementById("password").value;
+  const cpw = document.getElementById("confirm_password").value;
+  const error = document.getElementById("password_error");
+
+  if (pw !== cpw) {
+    error.classList.remove("hidden");
+    return false; // stop form submission
+  }
+
+  error.classList.add("hidden");
+  return true; // allow form submission
+}
+</script>
+
+{% endblock %}

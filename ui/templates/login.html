@@ -5,6 +5,13 @@
   <div class="bg-white p-6 rounded shadow-md w-full max-w-sm">
     <h2 class="text-xl font-bold mb-4 text-center">Login</h2>
 
+    <!-- Inline Error -->
+    {% if error %}
+    <div class="mb-4 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded">
+      {{ error }}
+    </div>
+    {% endif %}
+
     <form method="post">
       <label class="block mb-2 text-sm font-medium">Username</label>
       <input name="username" class="w-full border px-3 py-2 rounded mb-4" />

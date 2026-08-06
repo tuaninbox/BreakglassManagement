@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-4">Audit Logs</h1>
+
+<!-- Filters -->
+<form method="get" class="mb-4 flex space-x-4">
+
+  <input name="user" value="{{ filter_user or '' }}"
+         placeholder="User"
+         class="border px-3 py-2 rounded">
+
+  <input name="category" value="{{ filter_category or '' }}"
+         placeholder="Category"
+         class="border px-3 py-2 rounded">
+
+  <input name="search" value="{{ filter_search or '' }}"
+         placeholder="Search"
+         class="border px-3 py-2 rounded w-64">
+
+  <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+    Filter
+  </button>
+
+  <a href="/ui/logs" class="px-4 py-2 bg-gray-300 rounded">Clear</a>
+</form>
+
+<!-- Logs Table -->
+<table class="w-full bg-white rounded shadow text-left">
+  <thead>
+    <tr class="border-b">
+      <th class="px-4 py-2">Time</th>
+      <th class="px-4 py-2">User</th>
+      <th class="px-4 py-2">Action</th>
+      <th class="px-4 py-2">Details</th>
+      <th class="px-4 py-2">Category</th>
+      <th class="px-4 py-2">IP</th>
+      <th class="px-4 py-2">Path</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {% for log in logs %}
+    <tr class="border-b hover:bg-gray-50">
+      <td class="px-4 py-2">{{ log.timestamp }}</td>
+      <td class="px-4 py-2">{{ log.user or "Anonymous" }}</td>
+      <td class="px-4 py-2">{{ log.action }}</td>
+      <td class="px-4 py-2">{{ log.details }}</td>
+      <td class="px-4 py-2">{{ log.category }}</td>
+      <td class="px-4 py-2">{{ log.ip }}</td>
+      <td class="px-4 py-2">{{ log.path }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

@@ -4,16 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.db import Base, engine, AsyncSessionLocal
 from core.security import hash_password
+from core.middleware import AuditMiddleware
 from models.user import User
 
 from api import auth, devices, accounts, requests, approvals, admin
-from ui import routes as ui_routes
+from ui.routes import auth as ui_auth, accounts as ui_accounts, breakglass as ui_breakglass, devices as ui_devices, approvals as ui_approvals, logs as ui_logs
 
-from core.config_loader import load_config
+from core.device_config import load_config
 from core.device_loader import load_devices
 
 app = FastAPI(title="Breakglass")
-
+app.add_middleware(AuditMiddleware)
 
 async def seed_admin_user():
     """
@@ -68,7 +69,12 @@ app.include_router(accounts.router)
 app.include_router(requests.router)
 app.include_router(approvals.router)
 app.include_router(admin.router)
-app.include_router(ui_routes.router)
+app.include_router(ui_auth.router)
+app.include_router(ui_accounts.router)
+app.include_router(ui_breakglass.router)
+app.include_router(ui_devices.router)
+app.include_router(ui_approvals.router)
+app.include_router(ui_logs.router)
 
 
 # Optional: redirect "/" → "/ui/login"

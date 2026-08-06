@@ -1,5 +1,5 @@
 import httpx
-from core.config import settings
+from core.settings import settings
 
 async def get_secret(path: str) -> dict:
     url = f"{settings.vault_addr}/v1/{path}"

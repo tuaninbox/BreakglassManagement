@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-4">Edit Account</h1>
+
+{% if error %}
+<div class="mb-4 bg-red-100 border border-red-300 text-red-700 px-3 py-2 rounded">
+  {{ error }}
+</div>
+{% endif %}
+
+<form method="post" class="bg-white p-6 rounded shadow-md max-w-xl" onsubmit="return validatePasswords()">
+
+  <label class="block mb-2">Username</label>
+  <input name="username" value="{{ user.username }}" class="w-full border px-3 py-2 rounded mb-4">
+
+  <label class="block mb-2">Email</label>
+  <input name="email" value="{{ user.email }}" type="email" class="w-full border px-3 py-2 rounded mb-4">
+
+  <label class="block mb-2">Role</label>
+  <select name="role" class="w-full border px-3 py-2 rounded mb-4">
+    <option value="admin" {% if user.role == "admin" %}selected{% endif %}>Admin</option>
+    <option value="requester" {% if user.role == "requester" %}selected{% endif %}>Requester</option>
+    <option value="approver" {% if user.role == "approver" %}selected{% endif %}>Approver</option>
+    <option value="requester_approver" {% if user.role == "requester_approver" %}selected{% endif %}>Requester & Approver</option>
+  </select>
+
+  <label class="block mb-2">New Password (optional)</label>
+  <input id="new_password" name="new_password" type="password" class="w-full border px-3 py-2 rounded mb-4">
+
+  <label class="block mb-2">Confirm Password</label>
+  <input id="confirm_password" name="confirm_password" type="password" class="w-full border px-3 py-2 rounded mb-4">
+
+  <p id="password_error" class="text-red-600 mb-4 hidden">
+    Passwords do not match.
+  </p>
+
+  <div class="flex justify-end space-x-3">
+    <a href="/ui/accounts" class="px-4 py-2 bg-gray-300 rounded">Cancel</a>
+
+    <button class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+      Save
+    </button>
+  </div>
+</form>
+
+<script>
+function validatePasswords() {
+  const pw = document.getElementById("new_password").value;
+  const cpw = document.getElementById("confirm_password").value;
+  const error = document.getElementById("password_error");
+
+  // If both fields are empty → allow submit (password change optional)
+  if (!pw && !cpw) {
+    error.classList.add("hidden");
+    return true;
+  }
+
+  // If one is empty → block submit
+  if (!pw || !cpw) {
+    error.textContent = "Please fill both password fields.";
+    error.classList.remove("hidden");
+    return false;
+  }
+
+  // If mismatch → block submit
+  if (pw !== cpw) {
+    error.textContent = "Passwords do not match.";
+    error.classList.remove("hidden");
+    return false;
+  }
+
+  // All good → allow submit
+  error.classList.add("hidden");
+  return true;
+}
+</script>
+
+{% endblock %}

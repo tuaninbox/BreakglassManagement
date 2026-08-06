@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     nagios_api_token: str | None = None  # or username/password if you prefer
     nagios_verify_ssl: bool = True
 
+    # Audit Logging Configuration
+    log_folder: str = "logs"
+    log_file: str = "audit.log"
+    log_rotation: str = "10 MB"       # rotate when file reaches 10MB
+    log_retention: str = "14 days"    # keep logs for 14 days
+    log_compression: str = "zip"      # compress rotated logs
+
     class Config:
         env_file = ".env"
 

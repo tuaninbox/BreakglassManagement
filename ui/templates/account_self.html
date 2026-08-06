@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="text-xl font-bold mb-4">My Account</h1>
+
+<!-- Success Message -->
+{% if success %}
+<div class="mb-4 bg-green-100 border border-green-300 text-green-700 px-3 py-2 rounded">
+  {{ success }}
+</div>
+{% endif %}
+
+<div class="bg-white p-6 rounded shadow-md max-w-xl">
+
+  <p class="mb-2"><strong>Username:</strong> {{ user.username }}</p>
+  <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+  <p class="mb-2"><strong>Role:</strong> {% if user.role == "requester_approver" %}
+    Requester & Approver
+  {% else %}
+    {{ user.role }}
+  {% endif %}</p>
+
+<a href="/ui/account/{{ user.id }}/edit"
+   class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+  Edit Account
+</a>
+
+</div>
+
+{% endblock %}
