@@ -1,0 +1,32 @@
+<div class="modal bg-white p-4 rounded shadow">
+  <h2 class="text-lg font-bold mb-2">Approve Request {{ req.id }}</h2>
+
+  <textarea
+    name="justification"
+    placeholder="Enter justification..."
+    class="border w-full p-2 rounded mb-3"
+    hx-trigger="keyup changed"
+    hx-target="#justification-field">
+  </textarea>
+
+  <button
+    hx-post="/ui/requests/{{ req.id }}/approve"
+    hx-target="#requests-table"
+    hx-include="closest .modal"
+    class="bg-green-600 text-white px-3 py-1 rounded">
+    Approve
+  </button>
+
+  <button
+    hx-post="/ui/requests/{{ req.id }}/reject"
+    hx-target="#requests-table"
+    hx-include="closest .modal"
+    class="bg-red-600 text-white px-3 py-1 rounded">
+    Reject
+  </button>
+
+  <button onclick="document.getElementById('modal').innerHTML=''"
+    class="px-3 py-1 bg-gray-300 rounded mt-3">
+    Cancel
+  </button>
+</div>

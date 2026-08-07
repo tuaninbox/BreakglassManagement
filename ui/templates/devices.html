@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1 class="text-xl font-bold mb-4">Devices</h1>
+<h1 class="text-2xl font-bold mb-6 text-center">Devices</h1>
 
 <!-- Search + Filter -->
+<div class="px-4">
 <div class="flex flex-col md:flex-row md:items-center md:space-x-4 mb-4 space-y-3 md:space-y-0">
   <input
     id="search"
@@ -29,8 +30,7 @@
     <option value="DC1">Shenton Park</option>
     <option value="DC2">Malaga</option>
   </select>
-  
- 
+
   <select
     id="filter-os"
     name="filter_os"
@@ -44,12 +44,12 @@
     <option value="IOS">IOS</option>
     <option value="NXOS">NXOS</option>
   </select>
-
-
 </div>
-
-<div id="device-table" class="overflow-x-auto">
+</div>
+<!-- Full-width table with same gap as logs/accounts -->
+<div id="device-table" class="mt-6 px-4 overflow-x-auto">
   {% include "partials/device_table.html" %}
 </div>
+
 
 {% endblock %}

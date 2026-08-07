@@ -1,0 +1,36 @@
+<table class="table-auto w-full border">
+  <tr class="bg-gray-200">
+    <th>ID</th>
+    <th>Owner</th>
+    <th>Reason</th>
+    <th>Status</th>
+    <th>Action</th>
+  </tr>
+
+  {% for req in requests %}
+  <tr class="border-b">
+    <td>{{ req.id }}</td>
+    <td>{{ req.owner }}</td>
+    <td>{{ req.reason }}</td>
+    <td>{{ req.status }}</td>
+
+    <td>
+      {% if req.owner_id == current_user.id %}
+      <button
+        hx-get="/ui/requests/{{ req.id }}/delete-confirm"
+        hx-target="#modal"
+        class="bg-red-600 text-white px-3 py-1 rounded">
+        Delete
+      </button>
+      {% else %}
+      <button
+        hx-get="/ui/requests/{{ req.id }}/approve-modal"
+        hx-target="#modal"
+        class="bg-green-600 text-white px-3 py-1 rounded">
+        Approve
+      </button>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>

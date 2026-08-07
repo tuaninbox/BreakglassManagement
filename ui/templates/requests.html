@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-xl font-bold mb-4">Requests</h1>
+
+<div id="requests-table">
+  {% include "partials/requests_table.html" %}
+</div>
+
+<div id="modal"></div>
+{% endblock %}

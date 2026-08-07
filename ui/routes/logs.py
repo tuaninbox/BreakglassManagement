@@ -1,28 +1,32 @@
+# ui/routes/logs.py
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
+import httpx
 
 from deps.auth import get_current_user_optional
 from models.user import User
 from core.audit_logger import log_action
-from core.audit_logger import LOG_PATH
-import json
+from core.settings import settings
 
 router = APIRouter(prefix="/ui", tags=["ui"])
 templates = Jinja2Templates(directory="ui/templates")
 templates.env.cache.clear()
 
+api_base_url = settings.backend_url  # Use the backend URL from settings
+
 @router.get("/logs", response_class=HTMLResponse)
-async def view_logs(
+async def ui_logs_page(
     request: Request,
     current_user: User | None = Depends(get_current_user_optional),
     user: str | None = None,
     category: str | None = None,
+    action: str | None = None,
+    timestamp: str | None = None,
     search: str | None = None,
     limit: int = 300,
+    show_filters: bool | None = None
 ):
-    logs = []
-
     if current_user is None or current_user.role != "admin":
         log_action(
             current_user,
@@ -32,44 +36,46 @@ async def view_logs(
             category="logs"
         )
         return RedirectResponse("/ui/login")
-    
-    # Read from the actual audit log file
-    try:
-        with open(LOG_PATH, "r") as f:
-            for line in f:
-                try:
-                    entry = json.loads(line)
-                except:
-                    continue
 
-                # Apply filters
-                if user and entry.get("user") != user:
-                    continue
+    # Call backend API
+    async with httpx.AsyncClient() as client:
+        api_response = await client.get(
+            f"{api_base_url}/api/logs/",
+            params={
+                "user": user,
+                "category": category,
+                "action": action,
+                "timestamp": timestamp,
+                "search": search,
+                "limit": limit,
+            },
+            cookies=request.cookies,
+        )
 
-                if category and entry.get("category") != category:
-                    continue
-
-                if search:
-                    text = json.dumps(entry).lower()
-                    if search.lower() not in text:
-                        continue
-
-                logs.append(entry)
-
-    except FileNotFoundError:
-        logs = []
-
-    # Show newest logs first
-    logs = logs[-limit:]
-    logs.reverse()
+    logs = api_response.json()
 
     log_action(
-            current_user,
-            "logs_view",
-            "Viewed audit logs",
-            request,
-            category="logs"
-        )
+        current_user,
+        "logs_view",
+        "Viewed audit logs",
+        request,
+        category="logs"
+    )
+
+    # if request.headers.get("HX-Request") == "true":
+    #     return templates.TemplateResponse(
+    #         "partials/log_table.html",
+    #         {
+    #             "request": request,
+    #             "logs": logs,
+    #             "filter_user": user,
+    #             "filter_category": category,
+    #             "filter_action": action,
+    #             "filter_timestamp": timestamp,
+    #             "filter_search": search,
+    #         }
+    #     )
+
     return templates.TemplateResponse(
         "logs.html",
         {
@@ -77,7 +83,10 @@ async def view_logs(
             "logs": logs,
             "filter_user": user,
             "filter_category": category,
+            "filter_action": action,
             "filter_search": search,
+            "filter_timestamp": timestamp,
+            "show_filters": show_filters,
             "current_user": current_user,
         },
     )

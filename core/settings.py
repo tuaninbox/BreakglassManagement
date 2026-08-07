@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     app_name: str = "Breakglass"
     debug: bool = True
 
+    backend_url: str = "http://localhost:8000"
     database_url: str = "sqlite+aiosqlite:///./breakglass.db"
     # later: "postgresql+asyncpg://user:pass@host/db"
 
